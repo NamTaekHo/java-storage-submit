@@ -40,6 +40,16 @@ public class MyStorage {
         return select;  // 입력 받은 정수를 반환합니다.
     }
 
+    // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    // 제품 검색 메서드 (제품 이름으로 검색)
+    private static int findProductIndex(String productName){
+        int idx = IntStream.range(0, products.length)
+                .filter(i -> products[i].equals(productName))
+                .findFirst()
+                .orElse(-1);
+        return idx;
+    }
+
     /**
      * 제품을 등록하는 메서드입니다.
      *
@@ -52,20 +62,19 @@ public class MyStorage {
         // TODO:
         System.out.print("[System] 수량을 추가할 제품명을 입력하세요 : ");
         String prod_name = s.nextLine();
-        if (Arrays.stream(products)
-                .filter(product -> product.equals(prod_name))
-                .count() > 0) {
+        int idx = findProductIndex(prod_name);
+
+        if (idx != -1) {
             System.out.println("이미 추가된 제품입니다.");
             return;
         }
-        OptionalInt idx = IntStream.range(0, products.length)
-                .filter(i -> products[i].equals(EMPTY))
-                .findFirst();
-        if (idx.isEmpty()) {
-            System.out.println("저장 할 수 없습니다.");
+        int emptyIdx = findProductIndex(EMPTY);
+
+        if (emptyIdx == -1) {
+            System.out.println("등록 가능한 공간이 없습니다.");
             return;
         }
-        products[idx.getAsInt()] = prod_name;
+        products[emptyIdx] = prod_name;
         System.out.println("[System] 등록이 완료됬습니다.");
         System.out.println("[System] 현재 등록된 제품 목록 ▼");
         Arrays.stream(products)
@@ -88,14 +97,13 @@ public class MyStorage {
         // 제품 등록 취소 로직을 구현합니다. 입력받은 제품명에 해당하는 배열 요소를 EMPTY로 설정합니다.
         System.out.println("[System] 제품 등록 취소를 원하는 제품명을 입력하세요 : ");
         String prod_name = s.nextLine();
-        OptionalInt idx = IntStream.range(0, products.length)
-                .filter(i -> products[i].equals(prod_name))
-                .findFirst();
-        if (idx.isEmpty()) {
+        int idx = findProductIndex(prod_name);
+
+        if (idx == -1) {
             System.out.println("등록되지 않은 제품입니다. 정확한 제품명을 입력해주세요.");
             return;
         }
-        products[idx.getAsInt()] = EMPTY;
+        products[idx] = EMPTY;
         System.out.println("[System] 제품 취소가 완료됬습니다.");
 
     }
@@ -111,15 +119,17 @@ public class MyStorage {
         System.out.println("[System] 물건의 수량을 추가합니다.(입고)");
         System.out.print("[System] 수량을 추가할 제품명을 입력하세요 : ");
         String input = s.nextLine();  // 제품명 입력 받기
-        int foundIdx = -1;  // 찾은 인덱스 초기화
-        for (int i = 0; i < products.length; ++i) {
-            if (input.equals(products[i])) {  // 입력한 제품명과 일치하는 제품을 찾으면
-                foundIdx = i;  // 인덱스 저장
-                break;  // 반복 중단
-            }
-        }
+//        int foundIdx = -1;  // 찾은 인덱스 초기화
+//        for (int i = 0; i < products.length; ++i) {
+//            if (input.equals(products[i])) {  // 입력한 제품명과 일치하는 제품을 찾으면
+//                foundIdx = i;  // 인덱스 저장
+//                break;  // 반복 중단
+//            }
+//        }
+        int idx = findProductIndex(input);
 
-        if (foundIdx < 0) {  // 제품을 찾지 못한 경우
+
+        if (idx == -1) {  // 제품을 찾지 못한 경우
             System.out.println("[Warning] 입력한 제품명이 없습니다. 다시 확인하여 주세요.");
             return;
         }
@@ -129,9 +139,10 @@ public class MyStorage {
         // 숫자가 아닌 경우, 에러 메시지를 출력해야 합니다.
         // TODO:
         if (s.hasNextInt()) {
-            int cnt = Integer.parseInt(s.nextLine());  // 수량 입력 받기
-            counts[foundIdx] += cnt;  // 제품의 수량을 증가
+            int cnt = s.nextInt();  // 수량 입력 받기
+            counts[idx] += cnt;  // 제품의 수량을 증가
             System.out.println("[Clear] 정상적으로 제품의 수량 추가가 완료되었습니다.");
+            s.nextLine(); // 버퍼 제거
         } else {
             System.out.println("[Warning] 숫자만 입력 가능합니다. ex) 10");
         }
@@ -153,22 +164,28 @@ public class MyStorage {
         prod_search();
         System.out.print("[System] 출고를 진행할 제품명을 입력하세요 : ");
         String prod_name = s.nextLine();
-        Optional<String> sameName = Arrays.stream(products)
-                .filter(product -> product.equals(prod_name))
-                .findFirst();
-        int idx;
-        if (sameName.isPresent()) {
-            idx = IntStream.range(0, products.length)
-                    .filter(i -> products[i].equals(prod_name))
-                    .findFirst().getAsInt();
-        } else {
+//        Optional<String> sameName = Arrays.stream(products)
+//                .filter(product -> product.equals(prod_name))
+//                .findFirst();
+
+//        if (sameName.isPresent()) {
+//            idx = IntStream.range(0, products.length)
+//                    .filter(i -> products[i].equals(prod_name))
+//                    .findFirst().getAsInt();
+//        } else {
+//            System.out.println("[Warning] 정확한 제품명을 입력해주세요.");
+//            return;
+//        }
+        int idx = findProductIndex(prod_name);
+        if(idx == -1){
             System.out.println("[Warning] 정확한 제품명을 입력해주세요.");
             return;
         }
         System.out.println("[System] 원하는 출고량을 입력하세요 : ");
         int cnt;
         if (s.hasNextInt()) {
-            cnt = Integer.parseInt(s.nextLine());
+            cnt = s.nextInt();
+            s.nextLine(); // 버퍼 제거 (줄바꿈 문자가 남아있을 수도 있음)
         } else {
             System.out.println("[Warning] 숫자만 입력 가능합니다. ex) 10");
             return;
